@@ -4,6 +4,7 @@ from uuid import UUID
 from langchain.agents import create_agent
 from langchain.agents.middleware import SummarizationMiddleware
 from langchain.tools import ToolRuntime, tool
+from langchain_core.language_models import ModelProfile
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
@@ -30,6 +31,7 @@ model = ChatOpenAI(
     base_url=settings.deepseek.base_url,
     model=settings.deepseek.deepseek_chat,
     temperature=0.3,
+    profile=ModelProfile(max_input_tokens=128_000)
 )
 
 summarization_middleware = SummarizationMiddleware(
