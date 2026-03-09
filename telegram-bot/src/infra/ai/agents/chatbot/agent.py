@@ -10,15 +10,13 @@ from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from src.core.commons import current_datetime
 from src.infra.db.conn import session_factory
 from src.infra.db.repos import CourseRepository, StudentRepository
-from src.settings import BASE_DIR, settings
+from src.settings import SQLITE_PATH, settings
 from src.utils.formatting import get_module_context
 
 from ..course_generator.tools import knowledge_search
 from ..schemas import StudentContext
 from .memory import remember, search_memory
 from .prompts import SUMMARY_PROMPT, SYSTEM_PROMPT
-
-SQLITE_PATH = BASE_DIR / "checkpoint.sqlite"
 
 # model = ChatOpenAI(
 #     api_key=settings.yandexcloud.api_key,
@@ -36,8 +34,8 @@ model = ChatOpenAI(
 
 summarization_middleware = SummarizationMiddleware(
     model=model,
-    trigger=("tokens", 9000),
-    keep=("messages", 30),
+    trigger=("fraction", 0.8),
+    keep=("fraction", 0.3),
     summary_prompt=SUMMARY_PROMPT,
 )
 

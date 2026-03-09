@@ -1,4 +1,3 @@
-
 function escapeHtml(text) {
   const div = document.createElement("div");
   div.textContent = text;
@@ -213,51 +212,60 @@ function getEmbedUrl(url, platform) {
 }
 
 function sanitizeMermaid(code) {
+  if (!code) return "";
+
   let clean = code
-    // Удаляем открывающий блок кода
     .replace(/^```\s*mermaid\s*\n?/i, "")
-    // Удаляем закрывающий блок кода
     .replace(/```\s*$/i, "")
     .trim();
 
-  // Удаляем все директивы вида %%{...}%%
+  // Нормализация переводов строк
+  clean = clean.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+
+  // Замена длинных тире на обычный дефис
+  clean = clean.replace(/\u2013|\u2014/g, "-");
+
+  // Удаление директив (если есть)
   clean = clean.replace(/^%%\{[\s\S]*?\}%%\s*\n?/gm, "");
 
-  // Преобразуем diagram в graph с сохранением направления
+  // Преобразование "diagram" в "graph"
   clean = clean.replace(/^(diagram)\s+(LR|RL|TB|BT|TD|DT)/gi, "graph $2");
-
-  // Если есть просто diagram без направления
   if (clean.toLowerCase().startsWith("diagram ")) {
     clean = "graph " + clean.substring(8);
   } else if (clean.toLowerCase().startsWith("diagram\n")) {
     clean = "graph" + clean.substring(7);
   }
 
-  // Экранируем все специальные символы в тексте узлов
-  clean = clean.replace(/\[([^\]]+)\]/g, (match, text) => {
-    // Проверяем, содержит ли текст уже HTML-сущности
-    if (!text.match(/&#\d+;/g)) {
-      // Экранируем специальные символы
-      const escapedText = text
-        .replace(/\(/g, "&#40;")
-        .replace(/\)/g, "&#41;")
-        .replace(/\[/g, "&#91;")
-        .replace(/\]/g, "&#93;")
-        .replace(/\{/g, "&#123;")
-        .replace(/\}/g, "&#125;")
-        .replace(/\#/g, "&#35;")
-        .replace(/\;/g, "&#59;")
-        .replace(/\+/g, "&#43;")
-        .replace(/\=/g, "&#61;");
+  // Разбиваем на строки для обработки
+  const lines = clean.split("\n");
+  const processedLines = [];
 
-      return `[${escapedText}]`;
-    }
-    return match; // Если уже есть HTML-сущности, оставляем как есть
-  });
+  for (let line of lines) {
+    // 1. Обработка subgraph: заключаем заголовок в кавычки
+    line = line.replace(
+      /^(\s*)subgraph\s+(.+?)\s*$/,
+      (match, spaces, title) => {
+        const escapedTitle = title.replace(/"/g, '\\"');
+        return `${spaces}subgraph "${escapedTitle}"`;
+      },
+    );
 
-  // Удаляем возможные пустые строки в начале
+    // 2. Обработка узлов: преобразуем [текст] в ["текст"]
+    line = line.replace(
+      /\b([A-Za-z0-9_]+)\s*\[([^\]]*)\]/g,
+      (match, id, text) => {
+        const escapedText = text.replace(/"/g, '\\"');
+        return `${id}["${escapedText}"]`;
+      },
+    );
+
+    processedLines.push(line);
+  }
+
+  clean = processedLines.join("\n");
+
+  // Удаление пустых строк в начале
   clean = clean.replace(/^\s*\n+/, "");
-
   return clean.trim();
 }
 
@@ -275,7 +283,6 @@ function getContentTypeLabel(type) {
 function getModuleById(moduleId, course) {
   return course.modules.find((module) => module.id === moduleId);
 }
-
 
 export {
   formatTime,

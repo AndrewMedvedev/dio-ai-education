@@ -1,7 +1,5 @@
-const basePath = "http://localhost:8000/api/v1/courses";
-
 export async function sendData(data) {
-  const response = await fetch(basePath, {
+  const response = await fetch("/api/v1/courses", {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -17,16 +15,13 @@ export async function chat(userId, text, courseId) {
     user_id: userId,
     text: text,
   };
-  const response = await fetch(
-    `http://localhost:8000/api/v1/agents/chatbot?course_id=${courseId}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(request),
+  const response = await fetch(`/api/v1/agents/chatbot?course_id=${courseId}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+    body: JSON.stringify(request),
+  });
   console.log(JSON.stringify(request));
   return response;
 }
