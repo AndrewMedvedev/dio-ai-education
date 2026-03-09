@@ -101,3 +101,4 @@ assets
 education-ai.iml
 checkpoint.sqlite
 .env.render
+.env.beget
