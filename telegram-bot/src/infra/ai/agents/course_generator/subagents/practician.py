@@ -3,7 +3,7 @@
 import logging
 
 from langchain.agents import create_agent
-from langchain.agents.structured_output import ProviderStrategy
+from langchain.agents.structured_output import ProviderStrategy, ToolStrategy
 from langchain_openai import ChatOpenAI
 
 from src.core.entities.course import (
@@ -150,11 +150,11 @@ model = ChatOpenAI(
 config = {
     AssignmentType.FILE_UPLOAD: {
         "system_prompt": SYSTEM_PROMPTS[AssignmentType.FILE_UPLOAD],
-        "response_format": ProviderStrategy(FileUploadAssignment),
+        "response_format": ToolStrategy(FileUploadAssignment),
     },
     AssignmentType.GITHUB: {
         "system_prompt": SYSTEM_PROMPTS[AssignmentType.GITHUB],
-        "response_format": ProviderStrategy(GitHubAssignment),
+        "response_format": ToolStrategy(GitHubAssignment),
     },
 }
 
