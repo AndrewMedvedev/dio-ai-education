@@ -164,3 +164,34 @@ class DailyChatLimit(BaseModel):
         """Увеличивает счётчик сообщений на 1"""
 
         self.current_count += 1
+
+
+class ModulePerformance(BaseModel):
+    """Результаты успеваемости по одному модулю"""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    module_title: str = Field(..., description="Название модуля")
+    test_score: NonNegativeFloat | None = Field(default=None, description="Баллы за тест")
+    test_attempts: NonNegativeInt = Field(
+        default=None, description="Количество попыток выполнений теста"
+    )
+    assignment_score: NonNegativeFloat | None = Field(
+        default=None, description="Баллы за практическое задание"
+    )
+    is_test_passed: bool = Field(None, description="Пройден ли тест (≥ 61)")
+
+
+class StudentPerformance(BaseModel):
+    """Полный отчёт по успеваемости одного студента"""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    student_id: int = Field(..., description="ID студента")
+    username: str | None = Field(default=None, description="Username")
+    full_name: str | None = Field(default=None, description="ФИО")
+    current_module_title: str | None = Field(default=None, description="Название текущего модуля")
+    total_score: NonNegativeFloat = Field(default=0.0, description="Общее количество баллов")
+    module_performances: list[ModulePerformance] = Field(
+        default_factory=list, description="Результаты по всем модулям курса (в порядке order)"
+    )

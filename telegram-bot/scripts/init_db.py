@@ -32,6 +32,8 @@ async def main() -> None:
         exists_course = await course_repo.read(course.id)
         if exists_course is None:
             await course_repo.create(course)
+        else:
+            await course_repo.refresh(course)
         exists_groups = await student_repo.get_groups()
         if not exists_groups:
             groups = [

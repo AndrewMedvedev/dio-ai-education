@@ -9,7 +9,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from scripts import init_db
+from scripts import init_db, send_report
 from src.api.routers import router as api_router
 from src.api.views import router as views_router
 from src.bot.handlers import router as bot_router
@@ -32,6 +32,7 @@ dp.include_router(bot_router)
 async def lifespan(_: FastAPI):
     await create_tables()  # Создание таблиц
     await init_db.main()  # Добавление данных
+    await send_report.main(bot)  # Рассылка отчёта по успеваемости
     await bot.set_webhook(
         url=WEBHOOK_URL,
         allowed_updates=dp.resolve_used_update_types(),

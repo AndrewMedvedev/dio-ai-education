@@ -1,9 +1,12 @@
+import io
 import logging
 from uuid import UUID
 
+import pandas as pd
+
 from ..core.commons import current_datetime
 from ..core.entities.course import DetailedAnswerTest, MultipleChoiceTest
-from ..core.entities.student import LearningProgress
+from ..core.entities.student import LearningProgress, StudentPerformance
 from ..infra.ai.agents.assignment_checker import call_assignment_checker
 from ..infra.ai.agents.test_checker import call_test_checker
 from ..infra.db.conn import session_factory
@@ -103,3 +106,64 @@ async def check_daily_chat_limit(user_id: int) -> bool:
         chat_limit.increment_count()
         await student_repo.refresh_daily_chat_limit(chat_limit)
         return True
+
+
+def export_performance_reports(
+        reports_by_group: dict[str, list[StudentPerformance]]
+) -> bytes | None:
+    """Экспорт отчёта по успеваемости для каждой группы в Excel"""
+
+    if not reports_by_group:
+        return None
+    buffer = io.BytesIO()
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        for group_title, reports in reports_by_group.items():
+            if not reports:
+                continue
+            module_titles = [
+                module_performance.module_title
+                for module_performance in reports[0].module_performances
+            ]
+            columns = [
+                "ID студента",
+                "Username",
+                "ФИО",
+                "Текущий модуль",
+                "Общее количество баллов",
+            ]
+            for title in module_titles:
+                columns.extend([
+                    f"{title} — тест (баллы)",
+                    f"{title} — тест (попытки)",
+                    f"{title} — задание (баллы)",
+                    f"{title} — тест пройден",
+                ])
+            data = []
+            for report in reports:
+                row = [
+                    report.student_id,
+                    report.username,
+                    report.full_name,
+                    report.current_module_title,
+                    report.total_score,
+                ]
+                for module_performance in report.module_performances:
+                    row.extend([
+                        module_performance.test_score,
+                        module_performance.test_attempts,
+                        module_performance.assignment_score,
+                        module_performance.is_test_passed,
+                    ])
+                data.append(row)
+            performance_df = pd.DataFrame(data, columns=columns)
+            safe_sheet_name = (
+                group_title.replace("/", "_")
+                .replace("\\", "_")
+                .replace("?", "_")
+                .replace("*", "_")[:31]
+            )
+        performance_df.to_excel(writer, sheet_name=safe_sheet_name, index=False)
+    buffer.seek(0)
+    excel_data = buffer.getvalue()
+    buffer.close()
+    return excel_data

@@ -4,10 +4,18 @@ from uuid import UUID
 from pydantic import BaseModel
 from sqlalchemy import delete, desc, func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from ...app.schemas import Leader
 from ...core.entities.course import Course, Module
-from ...core.entities.student import DailyChatLimit, Group, LearningProgress, StudentTask
+from ...core.entities.student import (
+    DailyChatLimit,
+    Group,
+    LearningProgress,
+    ModulePerformance,
+    StudentPerformance,
+    StudentTask,
+)
 from ...core.entities.user import AnyUser, Student, Teacher
 from .base import Base
 from .models import (
@@ -93,6 +101,11 @@ class UserRepository:
         result = await self.session.execute(stmt)
         model = result.scalar_one_or_none()
         return None if model is None else self._from_orm(model)
+
+    async def delete(self, user_id: int) -> None:
+        stmt = delete(UserOrm).where(UserOrm.id == user_id)
+        await self.session.execute(stmt)
+        await self.session.commit()
 
 
 class StudentRepository(UserRepository):
@@ -214,6 +227,57 @@ class StudentRepository(UserRepository):
         model = DailyChatLimitOrm(**chat_limit.model_dump())
         await self.session.merge(model)
         await self.session.commit()
+
+    async def get_student_performances(self, group_id: UUID) -> list[StudentPerformance]:
+        group_stmt = (
+            select(GroupOrm)
+            .where(GroupOrm.id == group_id)
+            .options(selectinload(GroupOrm.students).joinedload(StudentOrm.learning_progress))
+        )
+        group = await self.session.scalar(group_stmt)
+        if not group:
+            raise ValueError(f"Group with {group_id} not found!")
+        modules_stmt = (
+            select(ModuleOrm)
+            .where(ModuleOrm.course_id == group.course_id)
+            .order_by(ModuleOrm.order)
+        )
+        results = await self.session.scalars(modules_stmt)
+        modules = results.all()
+        student_performances = []
+        for student in group.students:
+            learning_progress = student.learning_progress
+            total_score = learning_progress.total_score if learning_progress else 0.0
+            current_module_id = learning_progress.current_module_id if learning_progress else None
+            score_per_module = learning_progress.score_per_module if learning_progress else {}
+            current_title = next(
+                (module.title for module in modules if str(module.id) == str(current_module_id)),
+                None
+            )
+            module_performances = []
+            for module in modules:
+                module_id = str(module.id)
+                progress = score_per_module.get(module_id, {})
+                module_performances.append(
+                    ModulePerformance(
+                        module_title=module.title,
+                        test_score=progress.get("test_score", 0.0),
+                        test_attempts=progress.get("test_attempts", 0),
+                        assignment_score=progress.get("assignment_score", 0.0),
+                        is_test_passed=progress.get("is_test_passed", False),
+                    )
+                )
+            student_performances.append(
+                StudentPerformance(
+                    student_id=student.id,
+                    username=student.username,
+                    full_name=student.full_name,
+                    current_module_title=current_title,
+                    total_score=total_score,
+                    module_performances=module_performances,
+                )
+            )
+        return student_performances
 
 
 class CourseRepository(SqlAlchemyRepository[Course, CourseOrm]):

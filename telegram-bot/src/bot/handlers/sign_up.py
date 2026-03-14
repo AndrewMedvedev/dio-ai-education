@@ -6,8 +6,9 @@ from aiogram.utils.formatting import Bold, Text, Underline, as_line, as_marked_s
 from src.core.entities.user import Student, UserRole
 from src.infra.db.conn import session_factory
 from src.infra.db.repos import StudentRepository, UserRepository
+from src.utils.secutiry import verify_password
 
-from ..fsm import StudentSignUpForm
+from ..fsm import StudentSignUpForm, TeacherSignUpForm
 from ..keyboards import (
     ConfirmSignUpCbData,
     GroupChoiceCbData,
@@ -100,3 +101,40 @@ async def cb_confirm_sign_up(query: CallbackQuery, state: FSMContext) -> None:
     )
     await query.message.answer(STUDENT_CMD_MENU_TEXT)
     await state.clear()
+
+
+@router.callback_query(UserChoiceCbData.filter(F.role == UserRole.TEACHER))
+async def cb_teacher_chosen(query: CallbackQuery, state: FSMContext) -> None:
+    """Выбрана роль преподавателя"""
+
+    await query.answer()
+    await query.message.answer("<b>Введите пароль:</b>")
+    await state.set_state(TeacherSignUpForm.waiting_for_password)
+
+
+@router.message(TeacherSignUpForm.waiting_for_password, F.text)
+async def process_password(message: Message, state: FSMContext) -> None:
+    """Обработка введённого пароля"""
+
+    user_id = message.from_user.id
+    password = message.text.strip()
+    async with session_factory() as session:
+        repo = UserRepository(session)
+        user = await repo.read(user_id)
+        if user.role == UserRole.STUDENT:
+            await message.answer("🚫 Доступ запрещён!")
+            await state.clear()
+            return
+        if not verify_password(password, user.password_hash):
+            await message.answer("🚫 Неверный пароль!")
+            await state.clear()
+            return
+    await message.answer("✔️ Вход выполнен!")
+    await message.answer(
+        text=(
+            "<b>⚙️ Главное меню</b>\n\n"
+            " - /students_performance - <i>список студентов с их учебным прогрессом</i>"
+        )
+    )
+    await state.clear()
+    await state.update_data(user_role=UserRole.TEACHER)

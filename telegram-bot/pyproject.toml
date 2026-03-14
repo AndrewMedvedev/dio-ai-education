@@ -46,11 +46,12 @@ dependencies = [
 [tool.ruff]
 line-length = 99
 preview = true
-exclude = [
+extend-exclude = [
     "migrations",
     "migration",
     "src/migrations",
     "alembic.ini",
+    "scripts",
     "**/__pycache__",
     "**/.mypy_cache",
     "**/.ruff_cache",
