@@ -162,7 +162,7 @@ def export_performance_reports(
                 .replace("?", "_")
                 .replace("*", "_")[:31]
             )
-        performance_df.to_excel(writer, sheet_name=safe_sheet_name, index=False)
+            performance_df.to_excel(writer, sheet_name=safe_sheet_name, index=False)
     buffer.seek(0)
     excel_data = buffer.getvalue()
     buffer.close()
