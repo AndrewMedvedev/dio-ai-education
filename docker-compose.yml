@@ -43,6 +43,12 @@ services:
       HF_SPACE_URL: ${HF_SPACE_URL}
       # --- APP ---
       APP_URL: ${APP_URL}
+      # --- Teacher ---
+      TEACHER_ID: ${TEACHER_ID}
+      TEACHER_USERNAME: ${TEACHER_USERNAME}
+      TEACHER_PASSWORD: ${TEACHER_PASSWORD}
+      # --- Admin ---
+      ADMIN_ID: ${ADMIN_ID}
     depends_on:
       postgres:
         condition: service_healthy
