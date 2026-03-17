@@ -166,6 +166,8 @@ class StudentRepository(UserRepository):
                 (StudentTaskOrm.student_id == student_id) &
                 (StudentTaskOrm.module_id == module_id)
             )
+            .order_by(StudentTaskOrm.created_at.desc())
+            .limit(1)
         )
         result = await self.session.execute(stmt)
         model = result.scalar_one_or_none()
