@@ -24,7 +24,7 @@ async def add_group(session: AsyncSession, group: Group) -> None:
 
 
 async def main() -> None:
-    json_string = await anyio.Path(DATA_DIR / "Инженерия_ПО.json").read_text(encoding="utf-8")
+    json_string = await anyio.Path(DATA_DIR / "Инженерия_ПО_new.json").read_text(encoding="utf-8")
     course = Course.model_validate_json(json_string)
     async with session_factory() as session:
         course_repo = CourseRepository(session)
