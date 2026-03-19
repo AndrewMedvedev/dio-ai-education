@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, BackgroundTasks, Depends, Path, status
 from fastapi.security import OAuth2PasswordRequestForm
 
-from ..dependencies import AuthServiceDep, InvitationServiceDep
+from ..dependencies import AuthServiceDep
 from ..entities import Tokens
 from ..schemas import UserCreateForm, UserSignUp
 
@@ -19,10 +19,10 @@ router = APIRouter(prefix="/auth", tags=["Авторизация"])
 )
 async def signup(
         data: UserSignUp,
-        service: InvitationServiceDep,
+        service: AuthServiceDep,
         background_tasks: BackgroundTasks,
 ) -> dict[str, str]:
-    background_tasks.add_task(service.confirm_email, email=data.email)
+    background_tasks.add_task(service.send_email_confirmation, email=data.email)
     return {"message": "Приглашение будет отправлено в ближайшее время"}
 
 

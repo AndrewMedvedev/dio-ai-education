@@ -18,21 +18,6 @@ class InvitationService:
         self.session = session
         self.invitation_repo = InvitationRepository(session)
 
-    async def confirm_email(self, email: str):
-        """Отправляет письмо для подтверждения почты (само-приглашение)"""
-
-        assigned_role = UserRole.STUDENT
-        invitation = await self.invitation_repo.get_active_by_email_and_role(email, assigned_role)
-        if invitation is None:
-            expires_at = current_datetime() + timedelta(days=INVITATION_EXPIRES_IN_DAYS)
-            invitation = Invitation(
-                email=email,
-                invited_by=...,
-                assigned_role=assigned_role,
-                expires_at=expires_at,
-            )
-        invite_url = f"{settings.frontend_url}/auth/invite/accept?token={invitation.token}"
-
     async def invite_student(
             self, teacher_id: UUID, student_email: str, group_id: UUID | None = None
     ):

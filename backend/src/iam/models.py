@@ -37,11 +37,8 @@ class InvitationOrm(Base):
 
     email: Mapped[str]
     token: Mapped[str] = mapped_column(unique=True)
-    invited_by: Mapped[UUID | None] = mapped_column(nullable=True)
+    invited_by: Mapped[UUID]
     assigned_role: Mapped[UserRole] = mapped_column(Enum(UserRole))
-    group_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey("groups.id"), nullable=True, unique=False
-    )
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     is_used: Mapped[bool]
 

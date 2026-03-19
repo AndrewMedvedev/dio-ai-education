@@ -30,9 +30,6 @@ class Invitation(Entity):
     assigned_role: UserRole = Field(
         ..., description="Роль, которая назначена приглашённому пользователю"
     )
-    group_id: UUID | None = Field(
-        None, description="ID группы к которой присоединится приглашённый"
-    )
     expires_at: datetime = Field(..., description="Время истечения приглашения")
     is_used: bool = Field(False, description="Использовано ли приглашение")
 
@@ -40,12 +37,8 @@ class Invitation(Entity):
     def validate_rules(self) -> Self:
         """Проверка правил существования приглашения"""
 
-        if self.group_id is None and self.assigned_role == UserRole.STUDENT:
-            raise InvariantViolationError("Student must be invited to a specific group")
-        if self.invited_by is None and self.group_id is not None:
-            raise InvariantViolationError(
-                "No need to specify a group for the invitation itself"
-            )
+        if self.invited_by is None and self.assigned_role == UserRole.TEACHER:
+            raise InvariantViolationError("Teacher cannot invite itself")
         return self
 
     @property

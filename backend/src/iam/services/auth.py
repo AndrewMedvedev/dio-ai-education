@@ -1,11 +1,12 @@
 from datetime import timedelta
+from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...core.config import settings
 from ...core.exceptions import NotFoundError
-from ...core.utils import current_datetime, get_expiration_timestamp
-from ..entities import RefreshToken, Tokens, User
+from ...core.utils import current_datetime, get_expiration_timestamp, send_mail
+from ..entities import Invitation, RefreshToken, Tokens, User, UserRole
 from ..exceptions import InvitationExpiredError, UnauthorizedError, UserAlreadyExistsError
 from ..repos import InvitationRepository, RefreshTokenRepository, UserRepository
 from ..schemas import UserCreateForm
@@ -33,6 +34,37 @@ class AuthService:
         self.user_repo = UserRepository(session)
         self.refresh_repo = RefreshTokenRepository(session)
         self.invitation_repo = InvitationRepository(session)
+
+    async def send_email_confirmation(self, email: str):
+        """Отправка письма для подтверждения email"""
+
+        assigned_role = UserRole.STUDENT
+        invitation = await self.invitation_repo.get_active_by_email_and_role(email, assigned_role)
+        if invitation is None:
+            expires_at = current_datetime() + timedelta(hours=24)
+            invitation = Invitation(
+                email=email, assigned_role=assigned_role, expires_at=expires_at,
+            )
+        confirmation_url = f"{settings.frontend_url}/auth/confirm?token={invitation.token}"
+        context = {
+            "email": email,
+            "confirmation_url": confirmation_url,
+            "expires_in_hours": 24,
+            "platform_name": "ТИУ AI LMS",
+            "frontend_url": "https://example.com",
+            "current_year": current_datetime().year,
+        }
+        await send_mail(
+            to=email,
+            subject="Подтверждение почты",
+            template_name="email/confirm_email.html",
+            context=context,
+        )
+
+    async def invite(
+            self, invited_by: UUID, email: str, assigned_role: UserRole
+    ) -> Invitation:
+        """Отправка приглашения для регистрации пользователю"""
 
     async def register(self, token: str, form_data: UserCreateForm) -> Tokens:
         """Регистрация нового пользователя"""
