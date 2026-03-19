@@ -96,7 +96,7 @@ class UserRepository:
         await self.session.commit()
         await self.session.refresh(model)
 
-    async def read(self, user_id: int) -> AnyUser:
+    async def read(self, user_id: int) -> AnyUser | None:
         stmt = select(UserOrm).where(UserOrm.id == user_id)
         result = await self.session.execute(stmt)
         model = result.scalar_one_or_none()
@@ -106,6 +106,12 @@ class UserRepository:
         stmt = delete(UserOrm).where(UserOrm.id == user_id)
         await self.session.execute(stmt)
         await self.session.commit()
+
+    async def get_by_username(self, username: str) -> AnyUser | None:
+        stmt = select(UserOrm).where(UserOrm.username == username)
+        result = await self.session.execute(stmt)
+        model = result.scalar_one_or_none()
+        return None if model is None else self._from_orm(model)
 
 
 class StudentRepository(UserRepository):
