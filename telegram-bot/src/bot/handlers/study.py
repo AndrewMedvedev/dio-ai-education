@@ -431,6 +431,11 @@ async def process_file_upload(message: Message, bot: Bot, state: FSMContext) -> 
     """Обработка загруженного файла"""
 
     data = await state.get_data()
+    module_id = data.get("module_id")
+    if module_id is None:
+        logger.warning("FSM state is empty, user session is expired!")
+        await message.answer(SESSION_EXPIRED_TEXT)
+        return
     file_name = message.document.file_name
     file_info = await message.bot.get_file(message.document.file_id)
     buffer = await message.bot.download_file(file_info.file_path, destination=io.BytesIO())
@@ -439,7 +444,7 @@ async def process_file_upload(message: Message, bot: Bot, state: FSMContext) -> 
         submit_task_for_checking(
             bot=bot,
             user_id=message.from_user.id,
-            module_id=data["module_id"],
+            module_id=module_id,
             file_data=buffer.getvalue(),
             file_extension=f".{file_name.split('.')[-1]}",
         )
