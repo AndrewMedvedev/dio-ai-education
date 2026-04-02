@@ -337,6 +337,14 @@ class CourseRepository(SqlAlchemyRepository[Course, CourseOrm]):
         await self.session.merge(model)
         await self.session.commit()
 
+    async def update_full(self, course: Course) -> None:
+        # Удаляем все старые модули курса (чтобы избежать конфликта course_id)
+        await self.session.execute(delete(ModuleOrm).where(ModuleOrm.course_id == course.id))
+        # Теперь создаём свежий ORM-объект курса с новыми модулями
+        model = self._to_orm(course)
+        await self.session.merge(model)
+        await self.session.commit()
+
     async def get_module(self, module_id: UUID) -> Module | None:
         stmt = select(ModuleOrm).where(ModuleOrm.id == module_id)
         result = await self.session.execute(stmt)
