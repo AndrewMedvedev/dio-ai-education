@@ -174,6 +174,9 @@ async def call_practice_agent(assignment_type: AssignmentType, module: Module) -
         f"{get_module_context(module)}\n"
         f"</THEORY>"
     )
+    logger.info("============= Start generate practice ==================")
     result = await agent.ainvoke({"messages": [("human", prompt_template)]})
-    print(result)
+    logger.info("============= Practice generated =======================")
+    logger.info(result)
+    logger.info("==========================================================")
     return result["structured_response"]
