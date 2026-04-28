@@ -38,7 +38,6 @@ AI агент способен:
  ### Основное меню курса
 
  ![Меню курса](assets\screenshots\course_menu.png)
-
  ### Меню модуля курса
 
  ![Меню модуля](assets\screenshots\module_menu.png)

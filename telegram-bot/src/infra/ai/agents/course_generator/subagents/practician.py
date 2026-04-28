@@ -175,4 +175,5 @@ async def call_practice_agent(assignment_type: AssignmentType, module: Module) -
         f"</THEORY>"
     )
     result = await agent.ainvoke({"messages": [("human", prompt_template)]})
+    print(result)
     return result["structured_response"]
