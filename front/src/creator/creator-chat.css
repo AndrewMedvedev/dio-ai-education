@@ -656,4 +656,16 @@
     min-height: 30px;
   }
 
-  .creat
+  .creator-chat-send-btn {
+    width: 100%;
+  }
+
+  .creator-chat-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .creator-chat-actions .btn {
+    width: 100%;
+  }
+}
