@@ -19,7 +19,7 @@ load_dotenv(ENV_PATH)
 class TelegramSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="TELEGRAM_")
 
-    bot_token: str = "<BOT TOKEN>"
+    bot_token: str = ""
     webhook_path: str = "/hook"
 
 

@@ -21,8 +21,20 @@ logger = logging.getLogger(__name__)
 
 WEBHOOK_URL = f"{settings.app.url}{settings.telegram.webhook_path}"
 
+
+def get_valid_bot_token() -> str:
+    token = settings.telegram.bot_token.strip()
+    if not token:
+        msg = "TELEGRAM_BOT_TOKEN is empty. Set it in telegram-bot/.env"
+        raise RuntimeError(msg)
+    if " " in token:
+        msg = "TELEGRAM_BOT_TOKEN contains spaces. Remove spaces from telegram-bot/.env"
+        raise RuntimeError(msg)
+    return token
+
+
 bot = Bot(
-    token=settings.telegram.bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+    token=get_valid_bot_token(), default=DefaultBotProperties(parse_mode=ParseMode.HTML)
 )
 
 dp = Dispatcher(storage=storage)
