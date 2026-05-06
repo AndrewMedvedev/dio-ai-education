@@ -391,7 +391,7 @@ export default function CreatorChatView() {
   return (
     <section className="creator-chat-shell">
       {hasGenerationStarted && (
-        <article className="creator-chat-topbar">
+        <article className="glass-card creator-chat-topbar">
           <div className="creator-chat-top-main">
             <span>Создание курса</span>
             <h3>ИИ собирает структуру программы</h3>
