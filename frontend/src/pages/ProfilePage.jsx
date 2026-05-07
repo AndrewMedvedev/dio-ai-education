@@ -33,6 +33,9 @@ export default function ProfilePage({
   adjustStudentProgress,
   simulateStudyTick,
   teacherLeaderboard,
+  aiModels,
+  selectedAiModel,
+  setSelectedAiModel,
 }) {
   return (
     <section className="container section profile-view">
@@ -380,6 +383,44 @@ export default function ProfilePage({
                 )}
               </article>
             </div>
+          )}
+
+          {activeProfileTab === "settings" && (
+            <article className="glass-card profile-detail-card">
+              <h3>Модели ИИ</h3>
+              <p className="ai-models-description">
+                Выберите модель для генерации контента
+              </p>
+              <div className="ai-models-grid">
+                {aiModels.map((model) => (
+                  <div
+                    key={model.id}
+                    className={`ai-model-card ${selectedAiModel === model.id ? "is-selected" : ""}`}
+                    onClick={() => setSelectedAiModel(model.id)}
+                  >
+                    {model.badge && (
+                      <span className="ai-model-badge">{model.badge}</span>
+                    )}
+                    <h4>{model.name}</h4>
+                    <p className="ai-model-description">{model.description}</p>
+                    <div className="ai-model-pros">
+                      {model.pros.map((pro, index) => (
+                        <span key={index} className="ai-model-pro">
+                          {pro}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="ai-model-cons">
+                      {model.cons.map((con, index) => (
+                        <span key={index} className="ai-model-con">
+                          {con}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </article>
           )}
         </div>
       </div>

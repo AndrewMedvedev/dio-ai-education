@@ -30,6 +30,7 @@ import {
   points,
   steps,
   tracks,
+  aiModels,
 } from "./utils/data";
 
 function getRouteState(pathname) {
@@ -121,6 +122,7 @@ function AppContent() {
   const [billingPeriod, setBillingPeriod] = useState("month");
   const [selectedPlanId, setSelectedPlanId] = useState("plus");
   const [activeProfileTab, setActiveProfileTab] = useState("overview");
+  const [selectedAiModel, setSelectedAiModel] = useState("gpt-4-turbo");
   const [draftCourseTitle, setDraftCourseTitle] = useState("");
   const [draftCourseGoal, setDraftCourseGoal] = useState("");
   const [draftCourseLevel, setDraftCourseLevel] = useState("Новичок");
@@ -739,6 +741,9 @@ function AppContent() {
                 adjustStudentProgress={adjustStudentProgress}
                 simulateStudyTick={simulateStudyTick}
                 teacherLeaderboard={teacherLeaderboard}
+                aiModels={aiModels}
+                selectedAiModel={selectedAiModel}
+                setSelectedAiModel={setSelectedAiModel}
               />
             }
           />

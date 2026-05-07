@@ -20,7 +20,7 @@ export default function Header({ theme, toggleTheme, openHomeSection }) {
             `nav-link ${isCoursePath ? "is-active" : ""}`
           }
         >
-          Курс
+          Курсы
         </NavLink>
         <NavLink
           to="/creator"
